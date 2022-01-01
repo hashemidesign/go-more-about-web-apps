@@ -1,20 +1,53 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 )
 
-func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		n, err := fmt.Fprintf(w, "Hello world")
-		fmt.Println(fmt.Sprintf("Bytes written: %d", n))
-		if err != nil {
-			log.Println(err)
-		}
-	})
+const PORT = ":8080"
 
-	log.Println("Server starts on port 8080...")
-	_ = http.ListenAndServe(":8080", nil)
+// Home is the home page handler
+func Home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "home page")
+}
+
+// About is the about page handler
+func About(w http.ResponseWriter, r *http.Request) {
+	sum := AddValues(2, 2)
+	fmt.Fprintf(w, fmt.Sprintf("about page. 2 + 2 = %d", sum))
+}
+
+func AddValues(x, y int) int {
+	return x + y
+}
+
+func Divide(w http.ResponseWriter, r *http.Request) {
+	var x float32 = 100.0
+	var y float32 = 0.0
+	f, err := divideValues(x, y)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	fmt.Fprintf(w, fmt.Sprintf("%f divided by %f = %f", x, y, f))
+}
+
+func divideValues(x, y float32) (float32, error) {
+	if y == 0 {
+		err := errors.New("cannot divide by zero")
+		return 0, err
+	}
+	return x / y, nil
+}
+
+func main() {
+	http.HandleFunc("/", Home)
+	http.HandleFunc("/about", About)
+	http.HandleFunc("/divide", Divide)
+
+	log.Println(fmt.Sprintf("Server starts on http://127.0.0.1%s...", PORT))
+	_ = http.ListenAndServe(PORT, nil)
 }
